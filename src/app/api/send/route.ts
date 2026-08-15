@@ -42,6 +42,12 @@ export async function POST(req: Request) {
     } = Email.safeParse(body);
     if (!zodSuccess)
       return Response.json({ error: zodError?.message }, { status: 400 });
+    if (!resend) {
+  return Response.json(
+    { error: "RESEND_API_KEY is not configured" },
+    { status: 500 }
+  );
+}
     const { data: resendData, error: resendError } = await resend.emails.send({
       
       from: "Porfolio <onboarding@resend.dev>",

@@ -220,9 +220,9 @@ const projects: Project[] = [
     id: "codingducks",
     category: "Symbol Logos",
     title: "IIT Department Logos",
-    src: "/assets/projects-screenshots/codingducks/full.webp",
-    previewSrc: "/assets/projects-screenshots/codingducks/preview.webp",
-    screenshots: ["full.webp"],
+    src: "/assets/projects-screenshots/codingducks/full.png",
+    previewSrc: "/assets/projects-screenshots/codingducks/preview.png",
+    screenshots: ["full.png"],
     skills: {
       frontend: [
         
@@ -237,7 +237,7 @@ const projects: Project[] = [
   return (
     <div className="my-6">
       <Image
-          src="/assets/projects-screenshots/codingducks/full.webp"
+          src="/assets/projects-screenshots/codingducks/full.png"
           alt="IIT Department Logos"
           width={1200}
           height={700}
@@ -250,7 +250,7 @@ const projects: Project[] = [
   {
     id: "praveen-masale",
     category: "Branding",
-    title: "Praveen Masale",
+    title: "Pravin Masale",
     src: "/assets/projects-screenshots/praveen-masale/landing.png",
     previewSrc: "/assets/projects-screenshots/praveen-masale/preview.webp",
     screenshots: ["landing.png"],
@@ -261,7 +261,7 @@ const projects: Project[] = [
         <div className="my-6">
           <Image
             src="/assets/projects-screenshots/praveen-masale/landing.png"
-            alt="Praveen Masale branding"
+            alt="Pravin Masale branding"
             width={827}
             height={12000}
             className="w-full rounded-lg"

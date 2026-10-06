@@ -12,7 +12,7 @@ export interface UseCanvasResult {
   drawImage: (image: HTMLImageElement | null) => void;
 }
 
-const MAX_DEVICE_PIXEL_RATIO = 2;
+const MAX_DEVICE_PIXEL_RATIO = 1; // frames are 1280px wide; a 2x canvas just costs GPU
 const RESIZE_DEBOUNCE_MS = 100;
 
 /**

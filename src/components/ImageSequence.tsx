@@ -7,8 +7,9 @@ import { ScrollTrigger } from "gsap/ScrollTrigger";
 import { useImagePreloader } from "@/hooks/useImagePreloader";
 import { useCanvas } from "@/hooks/useCanvas";
 import {
-  getAllFrameUrls,
   FRAME_COUNT,
+  getAllFrameUrls,
+  pickFrameVariant,
 } from "@/lib/frameLoader";
 
 import Loader from "./Loader";
@@ -17,82 +18,71 @@ if (typeof window !== "undefined") {
   gsap.registerPlugin(ScrollTrigger);
 }
 
-// Generate only the approved frame URLs once.
-const FRAME_URLS = getAllFrameUrls();
+// The page appears once this many frames are loaded; the rest stream in
+// behind the scenes while the visitor is still on the first screen.
+const INITIAL_FRAMES = 24;
 
 // Scroll distance used by the pinned animation.
 const PIN_SCROLL_DISTANCE = () => window.innerHeight * 12;
 
 export default function ImageSequence() {
   const sectionRef = useRef<HTMLElement | null>(null);
-
   const { canvasRef, drawImage } = useCanvas();
 
-  const {
-    images,
-    progress,
-    isLoading,
-    isComplete,
-  } = useImagePreloader(FRAME_URLS);
-
-  const [isReady, setIsReady] = useState(false);
-
-  // Draw the first frame once all images have loaded.
+  // Pick desktop or phone-sized frames on the client.
+  const [urls, setUrls] = useState<string[] | null>(null);
   useEffect(() => {
-    if (
-      isComplete &&
-      images.length === FRAME_COUNT &&
-      images[0]
-    ) {
-      drawImage(images[0]);
-      setIsReady(true);
-    }
-  }, [isComplete, images, drawImage]);
+    setUrls(getAllFrameUrls(pickFrameVariant()));
+  }, []);
 
-  // Set up GSAP ScrollTrigger after the images are ready.
+  const { imagesRef, progress, isReady } = useImagePreloader(urls, {
+    readyCount: INITIAL_FRAMES,
+  });
+
+  // Set up GSAP ScrollTrigger once the first frames are ready.
   useLayoutEffect(() => {
     if (!isReady) return;
 
     const section = sectionRef.current;
-
     if (!section) return;
 
     const ctx = gsap.context(() => {
-      const sequence = {
-        frame: 0,
-      };
+      const sequence = { frame: 0 };
+      let lastDrawn = -1;
 
+      // Draw the requested frame, or the closest earlier one that has
+      // already loaded (matters only if someone scrolls faster than the
+      // background download). Skips redrawing the same frame twice.
       const renderFrame = () => {
-        const frameIndex = Math.round(sequence.frame);
+        const target = Math.round(sequence.frame);
+        const images = imagesRef.current;
 
-        const image = images[frameIndex];
-
-        if (image) {
-          drawImage(image);
+        for (let i = target; i >= 0; i--) {
+          const image = images[i];
+          if (image && image.naturalWidth > 0) {
+            if (i !== lastDrawn) {
+              drawImage(image);
+              lastDrawn = i;
+            }
+            return;
+          }
         }
       };
 
+      renderFrame();
+
       gsap.to(sequence, {
         frame: FRAME_COUNT - 1,
-
         ease: "none",
-
         snap: "frame",
-
         scrollTrigger: {
           trigger: section,
-
           start: "top top",
-
           end: PIN_SCROLL_DISTANCE,
-
           pin: true,
-
           scrub: true,
-
           invalidateOnRefresh: true,
         },
-
         onUpdate: renderFrame,
       });
     }, section);
@@ -100,17 +90,12 @@ export default function ImageSequence() {
     return () => {
       ctx.revert();
     };
-  }, [isReady, images, drawImage]);
+  }, [isReady, imagesRef, drawImage]);
 
   return (
     <>
-      {/* Loading screen while the image sequence is loading */}
-      {(isLoading || !isReady) && (
-        <Loader
-          progress={progress}
-          isComplete={isComplete}
-        />
-      )}
+      {/* Loading screen: only until the first few frames are in */}
+      <Loader progress={progress} isComplete={isReady} />
 
       {/* Scroll-driven image sequence */}
       <section
@@ -118,10 +103,7 @@ export default function ImageSequence() {
         className="hero"
         aria-label="Scroll-driven portfolio animation"
       >
-        <canvas
-          ref={canvasRef}
-          className="hero__canvas"
-        />
+        <canvas ref={canvasRef} className="hero__canvas" />
       </section>
     </>
   );

@@ -2,108 +2,112 @@
 
 import { useEffect, useRef, useState } from "react";
 
+export interface UseImagePreloaderOptions {
+  /** How many leading frames must be loaded before `isReady` flips to true. */
+  readyCount?: number;
+  /** How many downloads run at the same time. */
+  concurrency?: number;
+}
+
 export interface UseImagePreloaderResult {
-  /** Fully loaded <img> elements, indexed the same way as the input urls array. */
-  images: HTMLImageElement[];
-  /** Whole-number percentage between 0 and 100. */
+  /**
+   * Stable array that is filled in as frames arrive (index = frame index).
+   * Read `imagesRef.current[i]` at draw time; entries that have not loaded yet
+   * are `undefined`.
+   */
+  imagesRef: React.MutableRefObject<(HTMLImageElement | undefined)[]>;
+  /** 0-100, progress of the first `readyCount` frames (what the loader shows). */
   progress: number;
-  /** True while any image is still loading. */
-  isLoading: boolean;
-  /** True once every image has finished loading (successfully or not). */
+  /** True once the first `readyCount` frames are loaded: the page can show. */
+  isReady: boolean;
+  /** True once every frame has finished (the rest load in the background). */
   isComplete: boolean;
-  /** True if one or more images failed to load. */
   hasError: boolean;
 }
 
 /**
- * Preloads a fixed list of image URLs and reports granular progress.
- *
- * Each image is loaded via a real HTMLImageElement so the browser decodes
- * and caches it immediately — by the time `isComplete` flips to true every
- * frame is ready to be drawn to canvas with zero decode latency, which is
- * what keeps the scroll-scrub perfectly smooth.
+ * Loads frames in order and lets the page start after the first few, instead
+ * of blocking on all of them. The remaining frames keep downloading quietly
+ * (a few at a time) while the visitor reads the first screen.
  */
-export function useImagePreloader(urls: string[]): UseImagePreloaderResult {
-  const [progress, setProgress] = useState<number>(0);
-  const [isLoading, setIsLoading] = useState<boolean>(true);
-  const [isComplete, setIsComplete] = useState<boolean>(false);
-  const [hasError, setHasError] = useState<boolean>(false);
-
-  // Kept in a ref (not state) so consumers get a stable array reference
-  // once loading completes, without triggering extra re-renders per frame.
-  const imagesRef = useRef<HTMLImageElement[]>([]);
-  const [, forceRender] = useState<number>(0);
+export function useImagePreloader(
+  urls: string[] | null,
+  { readyCount = 24, concurrency = 6 }: UseImagePreloaderOptions = {}
+): UseImagePreloaderResult {
+  const imagesRef = useRef<(HTMLImageElement | undefined)[]>([]);
+  const [progress, setProgress] = useState(0);
+  const [isReady, setIsReady] = useState(false);
+  const [isComplete, setIsComplete] = useState(false);
+  const [hasError, setHasError] = useState(false);
 
   useEffect(() => {
-    if (urls.length === 0) {
-      setIsLoading(false);
-      setIsComplete(true);
-      return;
-    }
+    if (!urls || urls.length === 0) return;
 
-    let isMounted = true;
-    let loadedCount = 0;
-    const totalCount = urls.length;
-    const loadedImages: HTMLImageElement[] = new Array(totalCount);
+    const total = urls.length;
+    const needed = Math.min(readyCount, total);
+    imagesRef.current = new Array(total);
 
-    setIsLoading(true);
-    setIsComplete(false);
+    let cancelled = false;
+    let next = 0;
+    let settled = 0;
+    let settledInitial = 0;
+    const live = new Set<HTMLImageElement>();
+
     setProgress(0);
+    setIsReady(false);
+    setIsComplete(false);
     setHasError(false);
 
-    const handleOneSettled = () => {
-      loadedCount += 1;
-      if (!isMounted) return;
-
-      const pct = Math.round((loadedCount / totalCount) * 100);
-      setProgress(pct);
-
-      if (loadedCount === totalCount) {
-        imagesRef.current = loadedImages;
-        setIsLoading(false);
-        setIsComplete(true);
-        // Ensure consumers reading `images` see the freshly populated ref.
-        forceRender((n) => n + 1);
+    const onSettled = (index: number) => {
+      if (cancelled) return;
+      settled += 1;
+      if (index < needed) {
+        settledInitial += 1;
+        setProgress(Math.round((settledInitial / needed) * 100));
+        if (settledInitial === needed) setIsReady(true);
       }
+      if (settled === total) setIsComplete(true);
     };
 
-    const imageElements: HTMLImageElement[] = urls.map((url, index) => {
+    const loadNext = () => {
+      if (cancelled || next >= total) return;
+      const index = next++;
       const img = new Image();
       img.decoding = "async";
+      // The first screen's frames matter most; the rest can wait their turn.
+      (img as HTMLImageElement & { fetchPriority?: string }).fetchPriority =
+        index < needed ? "high" : "low";
+      live.add(img);
 
       img.onload = () => {
-        loadedImages[index] = img;
-        handleOneSettled();
+        img.onload = img.onerror = null;
+        live.delete(img);
+        imagesRef.current[index] = img;
+        onSettled(index);
+        loadNext();
       };
-
       img.onerror = () => {
-        if (isMounted) setHasError(true);
-        // Store the image anyway so indices stay aligned; a broken frame
-        // simply won't draw, it won't crash the sequence.
-        loadedImages[index] = img;
-        handleOneSettled();
+        img.onload = img.onerror = null;
+        live.delete(img);
+        // Leave the slot empty: drawing falls back to the previous frame.
+        if (!cancelled) setHasError(true);
+        onSettled(index);
+        loadNext();
       };
+      img.src = urls[index];
+    };
 
-      img.src = url;
-      return img;
-    });
+    for (let i = 0; i < Math.min(concurrency, total); i++) loadNext();
 
     return () => {
-      isMounted = false;
-      // Detach handlers to avoid state updates after unmount and to
-      // let the browser release decode resources for in-flight loads.
-      imageElements.forEach((img) => {
+      cancelled = true;
+      live.forEach((img) => {
         img.onload = null;
         img.onerror = null;
       });
+      live.clear();
     };
-  }, [urls]);
+  }, [urls, readyCount, concurrency]);
 
-  return {
-    images: imagesRef.current,
-    progress,
-    isLoading,
-    isComplete,
-    hasError,
-  };
+  return { imagesRef, progress, isReady, isComplete, hasError };
 }

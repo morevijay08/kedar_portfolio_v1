@@ -36,7 +36,7 @@ function SmoothScroll({ children, isInsideModal = false }: LenisProps) {
       root
       autoRaf={false}
       options={{
-        duration: 2,
+        duration: 1.2,
         prevent: (node) => {
           if (isInsideModal) return true;
           const modalOpen = node.classList.contains("modall");

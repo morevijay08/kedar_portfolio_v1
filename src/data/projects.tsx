@@ -190,7 +190,8 @@ const projects: Project[] = [
     id: "storekit",
     category: "poster design",
     title: "Protect Wildlife",
-    src: "/assets/projects-screenshots/storekit/landing.png",
+    src: "/assets/projects-screenshots/storekit/full.webp",
+    previewSrc: "/assets/projects-screenshots/storekit/preview.webp",
     screenshots: ["full.webp"],
     skills: {
       frontend: [
@@ -206,10 +207,11 @@ const projects: Project[] = [
   return (
     <div className="my-6">
       <Image
-          src="/assets/projects-screenshots/storekit/landing.png"
+          src="/assets/projects-screenshots/storekit/full.webp"
           alt="Protect Wildlife"
-          width={1200}
-          height={700}
+          width={1100}
+          height={5029}
+          unoptimized
           className="w-full rounded-lg object-cover"
       />
     </div>
@@ -220,9 +222,9 @@ const projects: Project[] = [
     id: "codingducks",
     category: "Symbol Logos",
     title: "IIT Department Logos",
-    src: "/assets/projects-screenshots/codingducks/full.png",
-    previewSrc: "/assets/projects-screenshots/codingducks/preview.png",
-    screenshots: ["full.png"],
+    src: "/assets/projects-screenshots/codingducks/full.webp",
+    previewSrc: "/assets/projects-screenshots/codingducks/preview.webp",
+    screenshots: ["full.webp"],
     skills: {
       frontend: [
         
@@ -237,10 +239,11 @@ const projects: Project[] = [
   return (
     <div className="my-6">
       <Image
-          src="/assets/projects-screenshots/codingducks/full.png"
+          src="/assets/projects-screenshots/codingducks/full.webp"
           alt="IIT Department Logos"
-          width={1200}
-          height={700}
+          width={1100}
+          height={8242}
+          unoptimized
           className="w-full rounded-lg object-cover"
       />
     </div>
@@ -251,19 +254,20 @@ const projects: Project[] = [
     id: "praveen-masale",
     category: "Branding",
     title: "Pravin Masale",
-    src: "/assets/projects-screenshots/praveen-masale/landing.png",
+    src: "/assets/projects-screenshots/praveen-masale/full.webp",
     previewSrc: "/assets/projects-screenshots/praveen-masale/preview.webp",
-    screenshots: ["landing.png"],
+    screenshots: ["full.webp"],
     skills: { frontend: [], backend: [] },
     live: "https://www.behance.net/gallery/254284669/Pravin-Masale-Packaging",
     get content() {
       return (
         <div className="my-6">
           <Image
-            src="/assets/projects-screenshots/praveen-masale/landing.png"
+            src="/assets/projects-screenshots/praveen-masale/full.webp"
             alt="Pravin Masale branding"
-            width={827}
-            height={12000}
+            width={1100}
+            height={10368}
+            unoptimized
             className="w-full rounded-lg"
           />
         </div>
@@ -274,19 +278,20 @@ const projects: Project[] = [
     id: "chitle",
     category: "Packaging",
     title: "Chitle",
-    src: "/assets/projects-screenshots/chitle/landing.png",
+    src: "/assets/projects-screenshots/chitle/full.webp",
     previewSrc: "/assets/projects-screenshots/chitle/preview.webp",
-    screenshots: ["landing.png"],
+    screenshots: ["full.webp"],
     skills: { frontend: [], backend: [] },
     live: "https://www.behance.net/gallery/254284467/Chitale-Modak-Branding",
     get content() {
       return (
         <div className="my-6">
           <Image
-            src="/assets/projects-screenshots/chitle/landing.png"
+            src="/assets/projects-screenshots/chitle/full.webp"
             alt="Chitle packaging"
-            width={735}
-            height={6389}
+            width={1100}
+            height={7747}
+            unoptimized
             className="w-full rounded-lg"
           />
         </div>
@@ -297,19 +302,20 @@ const projects: Project[] = [
     id: "logos",
     category: "logo design",
     title: "Logos",
-    src: "/assets/projects-screenshots/logos/landing.png",
+    src: "/assets/projects-screenshots/logos/full.webp",
     previewSrc: "/assets/projects-screenshots/logos/preview.webp",
-    screenshots: ["landing.png"],
+    screenshots: ["full.webp"],
     skills: { frontend: [], backend: [] },
     live: "https://www.behance.net/gallery/254285317/Logo-design",
     get content() {
       return (
         <div className="my-6">
           <Image
-            src="/assets/projects-screenshots/logos/landing.png"
+            src="/assets/projects-screenshots/logos/full.webp"
             alt="Logo design collection"
-            width={900}
-            height={6434}
+            width={1100}
+            height={7820}
+            unoptimized
             className="w-full rounded-lg"
           />
         </div>

@@ -27,20 +27,14 @@ const ScrollingPreview = ({
   const [activeSrc, setActiveSrc] = useState(src);
   const [bgReady, setBgReady] = useState(false);
   const [isVisible, setIsVisible] = useState(false);
-  // Becomes true the first time the card is near the screen. Nothing is
-  // downloaded for a card before that.
-  const [seen, setSeen] = useState(false);
 
   useEffect(() => {
     const viewport = viewportRef.current;
     if (!viewport) return;
 
     const observer = new IntersectionObserver(
-      ([entry]) => {
-        setIsVisible(entry.isIntersecting);
-        if (entry.isIntersecting) setSeen(true);
-      },
-      { threshold: 0.15, rootMargin: "300px 0px" }
+      ([entry]) => setIsVisible(entry.isIntersecting),
+      { threshold: 0.15 }
     );
 
     observer.observe(viewport);
@@ -52,7 +46,6 @@ const ScrollingPreview = ({
   }, [src]);
 
   useEffect(() => {
-    if (!seen) return;
     let cancelled = false;
     const img = new window.Image();
 
@@ -82,10 +75,10 @@ const ScrollingPreview = ({
       cancelled = true;
       window.removeEventListener("resize", compute);
     };
-  }, [activeSrc, fallbackSrc, seen]);
+  }, [activeSrc, fallbackSrc]);
 
   useEffect(() => {
-    if (!bg || !seen) {
+    if (!bg) {
       setBgReady(false);
       return;
     }
@@ -99,7 +92,7 @@ const ScrollingPreview = ({
     return () => {
       cancelled = true;
     };
-  }, [bg, seen]);
+  }, [bg]);
 
   const scrolls = scrollPx > 0;
   const animate = !reduceMotion && isVisible;
@@ -152,10 +145,8 @@ const ScrollingPreview = ({
         {scrolls ? (
           <motion.img
             key={activeSrc}
-            src={seen ? activeSrc : undefined}
+            src={activeSrc}
             alt=""
-            loading="lazy"
-            decoding="async"
             draggable={false}
             onError={useFallback}
             className="block w-full max-w-none select-none"
@@ -174,10 +165,8 @@ const ScrollingPreview = ({
         ) : (
           <motion.img
             key={activeSrc}
-            src={seen ? activeSrc : undefined}
+            src={activeSrc}
             alt=""
-            loading="lazy"
-            decoding="async"
             draggable={false}
             onError={useFallback}
             className="size-full select-none object-cover"

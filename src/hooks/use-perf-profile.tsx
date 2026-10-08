@@ -153,8 +153,8 @@ export function usePerfProfile(): PerfProfile {
     const lowEnd = saveData;
     const disable3D = reducedMotion || saveData;
     const disableDecorative = reducedMotion;
-    const particleCount = disableDecorative ? 0 : isMobile ? 24 : 60;
-    const maxDpr = isMobile ? 1 : 1.5;
+    const particleCount = disableDecorative ? 0 : isMobile ? 30 : 100;
+    const maxDpr = isMobile ? 1.5 : 2;
     return {
       reducedMotion,
       rawReducedMotion,

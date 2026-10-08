@@ -1,5 +1,4 @@
 import Link from "next/link";
-import Image from "next/image";
 import { File } from "lucide-react";
 import { SiBehance, SiLinkedin } from "react-icons/si";
 import { Button } from "../ui/button";
@@ -44,12 +43,9 @@ const HeroSection = () => {
           <span className="about-wobble cursor-default">ME</span>
         </div>
 
-        <Image
-          src="/assets/about-portrait.webp"
+        <img
+          src="/assets/about-portrait.png"
           alt="Portrait of Kedar Dixit"
-          width={1431}
-          height={1099}
-          unoptimized
           style={{
             left: "63%",
             top: "7%",
